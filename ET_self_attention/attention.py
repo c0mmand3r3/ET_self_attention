@@ -3,7 +3,7 @@ import math
 import torch
 import torch.nn as nn
 
-from ET_self_attention.pruning import tile_pruning, row_pruning_with_zeros, scale_and_multiply, tile_pruning_update
+from ET_self_attention.pruning import tile_pruning, row_pruning_with_zeros, scale_and_multiply
 
 
 class MultiheadAttention(nn.Module):
@@ -40,11 +40,12 @@ class MultiheadAttention(nn.Module):
         q, k, v = qkv.chunk(3, dim=-1)
 
         WO = torch.randn(size=q.shape, dtype=torch.float32)
+        bias = torch.randn(size=q.shape, dtype=torch.float32)
 
         # WQ_ = tile_pruning(q, 2, 2).transpose(-2, -1)
         # WK_ = tile_pruning(k, 2, 2).transpose(-2, -1)
-        WQ_ = tile_pruning(q, 2, 2).transpose(-2, -1)
-        WK_ = tile_pruning(k, 2, 2).transpose(-2, -1)
+        WQ_ = tile_pruning(q, bias, 2, 2, milesone=True).transpose(-2, -1)
+        WK_ = tile_pruning(k, bias, 2, 2, milesone=True).transpose(-2, -1)
         WV_ = row_pruning_with_zeros(v, 2).transpose(-2, -1)
 
         x_ = torch.reshape(x, q.shape)
@@ -60,7 +61,7 @@ class MultiheadAttention(nn.Module):
 
         z = torch.matmul(scale_values, v_)
         z[z != z] = 0
-        WO = tile_pruning(WO, 2, 2)
+        WO = tile_pruning(WO, bias, 2, 2, milesone=True)
         # WO_ = WO.transpose(-2, -1)
         # print(WO_.shape)
         output = torch.matmul(z.float(), WO.float())
@@ -107,9 +108,10 @@ class MultiheadAttention_secondary(nn.Module):
         q, k, v = qkv.chunk(3, dim=-1)
 
         WO = torch.randn(size=q.shape, dtype=torch.float32)
+        bias = torch.randn(size=q.shape, dtype=torch.float32)
 
-        WQ_ = tile_pruning(q, 2, 2).transpose(-2, -1)
-        WK_ = tile_pruning(k, 2, 2).transpose(-2, -1)
+        WQ_ = tile_pruning(q, bias, 2, 2, milesone=True).transpose(-2, -1)
+        WK_ = tile_pruning(k, bias, 2, 2, milesone=True).transpose(-2, -1)
         WV_ = v.transpose(-2, -1)
         WO_ = row_pruning_with_zeros(WO, 2)
 
