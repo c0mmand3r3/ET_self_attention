@@ -50,6 +50,7 @@ if __name__ == '__main__':
     device = torch.device("cuda:0") if torch.cuda.is_available() else torch.device("cpu")
     print("Device:", device)
 
+    # preparing dataset
     dataset = partial(ReverseDataset, 10, 16)
     train_loader = data.DataLoader(dataset(50000), batch_size=128, shuffle=True, drop_last=True, pin_memory=True)
     val_loader = data.DataLoader(dataset(1000), batch_size=128)
@@ -58,6 +59,7 @@ if __name__ == '__main__':
     print("Input data:", inp_data)
     print("Labels:    ", labels)
 
+    # model generation and evaluation
     reverse_model, reverse_result = train_reverse(input_dim=train_loader.dataset.num_categories,
                                                   model_dim=32,
                                                   num_heads=1,

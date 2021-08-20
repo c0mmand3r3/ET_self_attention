@@ -16,8 +16,6 @@ class MultiheadAttention(nn.Module):
         self.num_heads = num_heads
         self.head_dim = embed_dim // num_heads
 
-        # Stack all weight matrices 1...h together for efficiency
-        # Note that in many implementations you see "bias=False" which is optional
         self.qkv_proj = nn.Linear(input_dim, 3 * embed_dim)
         self.o_proj = nn.Linear(embed_dim, embed_dim)
 
@@ -42,8 +40,6 @@ class MultiheadAttention(nn.Module):
         WO = torch.randn(size=q.shape, dtype=torch.float32)
         bias = torch.randn(size=q.shape, dtype=torch.float32)
 
-        # WQ_ = tile_pruning(q, 2, 2).transpose(-2, -1)
-        # WK_ = tile_pruning(k, 2, 2).transpose(-2, -1)
         WQ_ = tile_pruning(q, bias, 2, 2, milesone=True).transpose(-2, -1)
         WK_ = tile_pruning(k, bias, 2, 2, milesone=True).transpose(-2, -1)
         WV_ = row_pruning_with_zeros(v, 2).transpose(-2, -1)
@@ -62,8 +58,7 @@ class MultiheadAttention(nn.Module):
         z = torch.matmul(scale_values, v_)
         z[z != z] = 0
         WO = tile_pruning(WO, bias, 2, 2, milesone=True)
-        # WO_ = WO.transpose(-2, -1)
-        # print(WO_.shape)
+
         output = torch.matmul(z.float(), WO.float())
         # add_val = torch.zeros(x_.shape, dtype=torch.float32)
         # for val in range(output.shape[0]):
@@ -84,8 +79,6 @@ class MultiheadAttention_secondary(nn.Module):
         self.num_heads = num_heads
         self.head_dim = embed_dim // num_heads
 
-        # Stack all weight matrices 1...h together for efficiency
-        # Note that in many implementations you see "bias=False" which is optional
         self.qkv_proj = nn.Linear(input_dim, 3 * embed_dim)
         self.o_proj = nn.Linear(embed_dim, embed_dim)
 
