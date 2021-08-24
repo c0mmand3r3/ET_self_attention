@@ -11,6 +11,7 @@ class ReverseDataset(data.Dataset):
         self.size = size
 
         self.data = torch.randint(self.num_categories, size=(self.size, self.seq_len))
+        print()
 
     def __len__(self):
         return self.size

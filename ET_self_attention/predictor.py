@@ -4,7 +4,7 @@ import torch.nn as nn
 import torch
 import torch.optim as optim
 import torch.nn.functional as F
-
+import numpy as np
 from ET_self_attention.encoding.transformer_encoder import TransformerEncoder, TransformerEncoder_secondary
 from ET_self_attention.schedular import CosineWarmupScheduler
 
@@ -34,6 +34,8 @@ class TransformerPredictor(pl.LightningModule):
         super().__init__()
         self.save_hyperparameters()
         self._create_model()
+
+
 
     def _create_model(self):
         # Input dim -> Model dim
@@ -66,6 +68,9 @@ class TransformerPredictor(pl.LightningModule):
             add_positional_encoding - If True, we add the positional encoding to the input.
                                       Might not be desired for some tasks.
         """
+        x = torch.mean(x, 1)
+        # print(x)
+        # exit(0)
         x = self.input_net(x)
         if add_positional_encoding:
             x = self.positional_encoding(x)
@@ -207,12 +212,26 @@ class ReversePredictor(TransformerPredictor):
     def _calculate_loss(self, batch, mode="train"):
         # Fetch data and transform categories to one-hot vectors
         inp_data, labels = batch
-        inp_data = F.one_hot(inp_data, num_classes=self.hparams.num_classes).float()
+        # inp_data = F.one_hot(inp_data, num_classes=self.hparams.num_classes).float()
+        inp_data = inp_data.to(torch.float32)
+        labels = labels.to(torch.float32)
 
         # Perform prediction and calculate loss and accuracy
         preds = self.forward(inp_data, add_positional_encoding=True)
-        loss = F.cross_entropy(preds.view(-1, preds.size(-1)), labels.view(-1))
-        acc = (preds.argmax(dim=-1) == labels).float().mean()
+
+        #TODO very important should have to predict properly
+        tmax = preds.max(-1, keepdim=True)[0]
+
+        predict_ = preds.ge(tmax).int()
+        predict_ = predict_.to(torch.float32)
+        preds = torch.reshape(predict_, labels.shape)
+
+
+
+        # print(labels_.shape)
+        criterion = nn.L1Loss()
+        loss = criterion(preds, labels)
+        acc = (preds == labels).float().mean()
 
         # Logging
         self.log("%s_loss" % mode, loss)
@@ -239,8 +258,11 @@ class ReversePredictor_secondary(TransformerPredictor_secondary):
 
         # Perform prediction and calculate loss and accuracy
         preds = self.forward(inp_data, add_positional_encoding=True)
+
         loss = F.cross_entropy(preds.view(-1, preds.size(-1)), labels.view(-1))
+
         acc = (preds.argmax(dim=-1) == labels).float().mean()
+
 
         # Logging
         self.log("%s_loss" % mode, loss)

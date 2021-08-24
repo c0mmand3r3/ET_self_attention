@@ -1,7 +1,7 @@
 import os
 import pickle
 
-from tweeter_covid19.utils import get_file_name
+from ET_self_attention.utils.utils import get_file_name
 
 
 def data_split(path=None):
