@@ -16,6 +16,7 @@ def scale_and_multiply(q, dk, k_transpose, mask=None):
 
 
 def tile_pruning(matrix, bias, r, c, milesone=False, alpha=0.01, ep=-0.01, percentile=0.5):
+
     if milesone:
         l2_norm = torch.zeros(size=(matrix.shape[0], matrix.shape[1],
                                     int(matrix.shape[2] / r), int(matrix.shape[3] / c)), dtype=torch.float32)

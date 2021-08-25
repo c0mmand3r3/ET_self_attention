@@ -46,6 +46,7 @@ class TransformerPredictor(pl.LightningModule):
         # Positional encoding for sequences
         self.positional_encoding = PositionalEncoding(d_model=self.hparams.model_dim)
         # Transformer
+
         self.transformer = TransformerEncoder(num_layers=self.hparams.num_layers,
                                               input_dim=self.hparams.model_dim,
                                               dim_feedforward=2 * self.hparams.model_dim,
@@ -254,15 +255,29 @@ class ReversePredictor_secondary(TransformerPredictor_secondary):
     def _calculate_loss(self, batch, mode="train"):
         # Fetch data and transform categories to one-hot vectors
         inp_data, labels = batch
-        inp_data = F.one_hot(inp_data, num_classes=self.hparams.num_classes).float()
+        # inp_data = F.one_hot(inp_data, num_classes=self.hparams.num_classes).float()
+        inp_data = inp_data.to(torch.float32)
+        labels = labels.to(torch.float32)
 
         # Perform prediction and calculate loss and accuracy
         preds = self.forward(inp_data, add_positional_encoding=True)
 
-        loss = F.cross_entropy(preds.view(-1, preds.size(-1)), labels.view(-1))
+        # TODO very important should have to predict properly
+        tmax = preds.max(-1, keepdim=True)[0]
 
-        acc = (preds.argmax(dim=-1) == labels).float().mean()
+        predict_ = preds.ge(tmax).int()
+        predict_ = predict_.to(torch.float32)
 
+        preds = torch.mean(predict_, 1)
+        tmax = preds.max(-1, keepdim=True)[0]
+
+        predict_ = preds.ge(tmax).int()
+        preds = predict_.to(torch.float32)
+
+        # print(labels_.shape)
+        criterion = nn.L1Loss()
+        loss = criterion(preds, labels)
+        acc = (preds == labels).float().mean()
 
         # Logging
         self.log("%s_loss" % mode, loss)

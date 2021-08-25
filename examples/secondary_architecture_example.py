@@ -6,7 +6,7 @@ import torch.utils.data as data
 from sklearn import preprocessing
 from tensorflow.python.keras.utils.np_utils import to_categorical
 
-from ET_self_attention.predictor import ReversePredictor
+from ET_self_attention.predictor import ReversePredictor_secondary
 from ET_self_attention.utils.pickleutils import read_pickle_data
 
 try:
@@ -22,17 +22,17 @@ def train_reverse(**kwargs):
     trainer = pl.Trainer(default_root_dir=root_dir,
                          callbacks=[ModelCheckpoint(save_weights_only=True, mode="max", monitor="val_acc")],
                          gpus=1 if str(device).startswith("cuda") else 0,
-                         max_epochs=10,
+                         max_epochs=1,
                          gradient_clip_val=5,
                          progress_bar_refresh_rate=1)
     trainer.logger._default_hp_metric = None
 
-    pretrained_filename = os.path.join(CHECKPOINT_PATH, "ReverseTask.ckpt")
+    pretrained_filename = os.path.join(CHECKPOINT_PATH, "ReverseTask_secondary.ckpt")
     if os.path.isfile(pretrained_filename):
         print("Found pretrained model, loading...")
-        model = ReversePredictor.load_from_checkpoint(pretrained_filename)
+        model = ReversePredictor_secondary.load_from_checkpoint(pretrained_filename)
     else:
-        model = ReversePredictor(max_iters=trainer.max_epochs * len(train_loader), **kwargs)
+        model = ReversePredictor_secondary(max_iters=trainer.max_epochs * len(train_loader), **kwargs)
         trainer.fit(model, train_loader, val_loader)
         print("Sucessfully fitted")
         trainer.save_checkpoint(pretrained_filename)
@@ -58,7 +58,6 @@ class ReverseDataset(data.Dataset):
         self.labels = torch.from_numpy(np.asarray(labels))
         self.labels.requires_grad=True
 
-        print()
 
     def __len__(self):
         return self.size
@@ -109,9 +108,9 @@ if __name__ == '__main__':
                                                   model_dim=18,
                                                   num_heads=1,
                                                   num_classes=3,
-                                                  num_layers=1,
+                                                  num_layers=2,
                                                   dropout=0.0,
-                                                  lr=5e-4,
+                                                  lr=0.01,
                                                   warmup=50)
 
 
