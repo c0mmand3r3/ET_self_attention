@@ -24,6 +24,22 @@
     <tr>
         <td>2</td>
         <td>3</td>
-        <td>62.90%</td>
+        <td>63.09%</td>
+    </tr>
+</table>
+
+#ANALYSIS OF SECONDARY MODEL
+
+
+<table>
+    <tr>
+        <td>Encoding Layer Number</td>
+        <td>head number</td>
+        <td>Accuracy</td>
+    </tr>
+    <tr>
+        <td>2</td>
+        <td>1</td>
+        <td>62.98%</td>
     </tr>
 </table>

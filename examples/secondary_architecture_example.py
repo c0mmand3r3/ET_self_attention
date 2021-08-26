@@ -22,7 +22,7 @@ def train_reverse(**kwargs):
     trainer = pl.Trainer(default_root_dir=root_dir,
                          callbacks=[ModelCheckpoint(save_weights_only=True, mode="max", monitor="val_acc")],
                          gpus=1 if str(device).startswith("cuda") else 0,
-                         max_epochs=1,
+                         max_epochs=10,
                          gradient_clip_val=5,
                          progress_bar_refresh_rate=1)
     trainer.logger._default_hp_metric = None
