@@ -14,7 +14,9 @@ try:
 except ModuleNotFoundError:
     import pytorch_lightning as pl
 from pytorch_lightning.callbacks import ModelCheckpoint
+
 CHECKPOINT_PATH = "data/saved_model"
+
 
 def train_reverse(**kwargs):
     root_dir = os.path.join(CHECKPOINT_PATH, "ReverseTask")
@@ -44,6 +46,7 @@ def train_reverse(**kwargs):
     model = model.to(device)
     return model, result
 
+
 class ReverseDataset(data.Dataset):
 
     def __init__(self, data, labels, num_categories, seq_len, size):
@@ -53,17 +56,17 @@ class ReverseDataset(data.Dataset):
         self.size = size
 
         self.data = torch.from_numpy(np.asarray(data))
-        self.data.requires_grad=True
+        self.data.requires_grad = True
 
         self.labels = torch.from_numpy(np.asarray(labels))
-        self.labels.requires_grad=True
-
+        self.labels.requires_grad = True
 
     def __len__(self):
         return self.size
 
     def __getitem__(self, idx):
         return self.data[idx], self.labels[idx]
+
 
 if __name__ == '__main__':
     DATASET_PATH = "data"
@@ -112,7 +115,6 @@ if __name__ == '__main__':
                                                   dropout=0.0,
                                                   lr=0.01,
                                                   warmup=50)
-
 
     print("Val accuracy:  %4.2f%%" % (100.0 * reverse_result["val_acc"]))
     print("Test accuracy: %4.2f%%" % (100.0 * reverse_result["test_acc"]))
